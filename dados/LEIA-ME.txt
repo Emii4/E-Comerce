@@ -1,0 +1,5 @@
+# LOJA ESCOLA - DADOS
+
+Este diretório será usado pelo banco H2 para armazenar os arquivos locais de dados.
+
+Não compartilhe o arquivo `loja.mv.db` com dados reais ou pessoais.

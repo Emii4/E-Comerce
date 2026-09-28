@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loja Escola</title>
+  <link rel="stylesheet" href="/estilo.css" />
+</head>
+<body>
+  <header class="topo">
+    <div class="container">
+      <h1>Loja Escola</h1>
+      <p>Catálogo de produtos com API Java + banco H2</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="painel">
+      <h2>Cadastrar produto</h2>
+
+      <form id="formCadastro" class="formulario">
+        <div class="campo">
+          <label for="nome">Nome</label>
+          <input id="nome" name="nome" type="text" required />
+        </div>
+
+        <div class="campo">
+          <label for="descricao">Descrição</label>
+          <textarea id="descricao" name="descricao" rows="3" required></textarea>
+        </div>
+
+        <div class="linha-dupla">
+          <div class="campo">
+            <label for="preco">Preço</label>
+            <input id="preco" name="preco" type="number" min="0.01" step="0.01" required />
+          </div>
+
+          <div class="campo">
+            <label for="estoque">Estoque</label>
+            <input id="estoque" name="estoque" type="number" min="0" step="1" required />
+          </div>
+        </div>
+
+        <div class="linha-dupla">
+          <div class="campo">
+            <label for="categoria">Categoria</label>
+            <input id="categoria" name="categoria" type="text" value="Smartphones" />
+          </div>
+
+          <div class="campo">
+            <label for="imagem">Imagem</label>
+            <input id="imagem" name="imagem" type="url" placeholder="https://..." />
+          </div>
+        </div>
+
+        <button type="submit">Cadastrar produto</button>
+      </form>
+
+      <p id="mensagem" class="mensagem" aria-live="polite"></p>
+    </section>
+
+    <section class="catalogo">
+      <div class="cabecalho-catalogo">
+        <h2>Produtos em destaque</h2>
+        <div id="carrinho" class="carrinho">Carrinho: R$ 0,00</div>
+      </div>
+
+      <div id="listaProdutos" class="grade" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script src="/loja.js"></script>
+</body>
+</html>

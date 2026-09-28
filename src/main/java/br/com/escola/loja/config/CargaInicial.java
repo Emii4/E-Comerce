@@ -1,0 +1,48 @@
+package br.com.escola.loja.config;
+
+import br.com.escola.loja.model.Produto;
+import br.com.escola.loja.repository.ProdutoRepository;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Configuration
+public class CargaInicial {
+
+    @Bean
+    CommandLineRunner carregarProdutos(ProdutoRepository produtoRepository) {
+        return args -> {
+            if (produtoRepository.count() == 0) {
+                produtoRepository.saveAll(List.of(
+                    new Produto(
+                        "iPhone 15 Pro",
+                        "Smartphone premium com chip avançado, câmera profissional e desempenho de alto nível.",
+                        new BigDecimal("5499.99"),
+                        12,
+                        "Smartphones",
+                        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=900&q=80"
+                    ),
+                    new Produto(
+                        "Galaxy S24 Ultra",
+                        "Android topo de linha com tela imersiva, inteligência artificial e excelente câmera.",
+                        new BigDecimal("5999.00"),
+                        8,
+                        "Smartphones",
+                        "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=900&q=80"
+                    ),
+                    new Produto(
+                        "Xiaomi 14 Ultra",
+                        "Câmera Leica, hardware premium e ótimo custo-benefício para quem busca performance.",
+                        new BigDecimal("4899.90"),
+                        15,
+                        "Smartphones",
+                        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80"
+                    )
+                ));
+            }
+        };
+    }
+}
