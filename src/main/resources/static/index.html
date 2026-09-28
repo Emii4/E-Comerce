@@ -1,74 +1,146 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Loja Escola</title>
-  <link rel="stylesheet" href="/estilo.css" />
-</head>
-<body>
-  <header class="topo">
-    <div class="container">
-      <h1>Loja Escola</h1>
-      <p>Catálogo de produtos com API Java + banco H2</p>
-    </div>
-  </header>
+const form = document.getElementById('formProduto');
+const listaProdutos = document.getElementById('listaProdutos');
+const mensagemEl = document.getElementById('mensagem');
+const tituloFormulario = document.getElementById('tituloFormulario');
+const btnCancelar = document.getElementById('btnCancelar');
 
-  <main class="container">
-    <section class="painel">
-      <h2>Cadastrar produto</h2>
+let editandoId = null;
 
-      <form id="formCadastro" class="formulario">
-        <div class="campo">
-          <label for="nome">Nome</label>
-          <input id="nome" name="nome" type="text" required />
-        </div>
+function mostrarMensagem(texto, sucesso = true) {
+  mensagemEl.textContent = texto;
+  mensagemEl.style.color = sucesso ? '#1e8e5a' : '#b5121b';
+}
 
-        <div class="campo">
-          <label for="descricao">Descrição</label>
-          <textarea id="descricao" name="descricao" rows="3" required></textarea>
-        </div>
+function limparFormulario() {
+  form.reset();
+  document.getElementById('idProduto').value = '';
+  document.getElementById('categoria').value = 'Smartphones';
+  editandoId = null;
+  tituloFormulario.textContent = 'Cadastrar produto';
+}
 
-        <div class="linha-dupla">
-          <div class="campo">
-            <label for="preco">Preço</label>
-            <input id="preco" name="preco" type="number" min="0.01" step="0.01" required />
-          </div>
+function formatarMoeda(valor) {
+  return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
 
-          <div class="campo">
-            <label for="estoque">Estoque</label>
-            <input id="estoque" name="estoque" type="number" min="0" step="1" required />
-          </div>
-        </div>
-
-        <div class="linha-dupla">
-          <div class="campo">
-            <label for="categoria">Categoria</label>
-            <input id="categoria" name="categoria" type="text" value="Smartphones" />
-          </div>
-
-          <div class="campo">
-            <label for="imagem">Imagem</label>
-            <input id="imagem" name="imagem" type="url" placeholder="https://..." />
-          </div>
-        </div>
-
-        <button type="submit">Cadastrar produto</button>
-      </form>
-
-      <p id="mensagem" class="mensagem" aria-live="polite"></p>
-    </section>
-
-    <section class="catalogo">
-      <div class="cabecalho-catalogo">
-        <h2>Produtos em destaque</h2>
-        <div id="carrinho" class="carrinho">Carrinho: R$ 0,00</div>
+function montarItem(produto) {
+  const item = document.createElement('article');
+  item.className = 'item-admin';
+  item.innerHTML = `
+    <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
+      <div>
+        <strong>${produto.nome}</strong>
+        <div style="color:#666; margin-top:6px;">${produto.marca} • ${produto.categoria}</div>
       </div>
+      <span style="font-weight:700; color:#b5121b;">${formatarMoeda(produto.preco)}</span>
+    </div>
+    <p style="margin: 12px 0; color:#666;">${produto.descricao}</p>
+    <div style="display:flex; justify-content:space-between; gap:12px; color:#1e8e5a; font-weight:700;">
+      <span>Estoque: ${produto.estoque}</span>
+      <span>ID: ${produto.id}</span>
+    </div>
+    <div class="acoes">
+      <button type="button" class="btn-secundario" data-editar="${produto.id}">Editar</button>
+      <button type="button" class="btn-danger" data-excluir="${produto.id}">Excluir</button>
+    </div>
+  `;
 
-      <div id="listaProdutos" class="grade" aria-live="polite"></div>
-    </section>
-  </main>
+  return item;
+}
 
-  <script src="/loja.js"></script>
-</body>
-</html>
+async function carregarProdutos() {
+  try {
+    const resposta = await fetch('/api/produtos');
+    if (!resposta.ok) {
+      throw new Error('Erro ao carregar os produtos.');
+    }
+
+    const produtos = await resposta.json();
+    listaProdutos.innerHTML = '';
+
+    produtos.forEach((produto) => {
+      listaProdutos.appendChild(montarItem(produto));
+    });
+
+    listaProdutos.querySelectorAll('[data-editar]').forEach((botao) => {
+      botao.addEventListener('click', async () => {
+        const id = botao.getAttribute('data-editar');
+        const resposta = await fetch(`/api/produtos/${id}`);
+        const produto = await resposta.json();
+
+        document.getElementById('idProduto').value = produto.id;
+        document.getElementById('nome').value = produto.nome;
+        document.getElementById('descricao').value = produto.descricao;
+        document.getElementById('preco').value = produto.preco;
+        document.getElementById('estoque').value = produto.estoque;
+        document.getElementById('marca').value = produto.marca;
+        document.getElementById('categoria').value = produto.categoria;
+        document.getElementById('imagem').value = produto.imagem;
+
+        editandoId = produto.id;
+        tituloFormulario.textContent = 'Editar produto';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    listaProdutos.querySelectorAll('[data-excluir]').forEach((botao) => {
+      botao.addEventListener('click', async () => {
+        const id = botao.getAttribute('data-excluir');
+        const confirmar = confirm('Deseja realmente excluir este produto?');
+        if (!confirmar) return;
+
+        const resposta = await fetch(`/api/produtos/${id}`, { method: 'DELETE' });
+        if (resposta.ok) {
+          mostrarMensagem('Produto excluído com sucesso!');
+          carregarProdutos();
+        } else {
+          mostrarMensagem('Erro ao excluir produto.', false);
+        }
+      });
+    });
+  } catch (erro) {
+    listaProdutos.innerHTML = '<p>Não foi possível carregar o catálogo.</p>';
+    mostrarMensagem(erro.message, false);
+  }
+}
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const dados = {
+    id: document.getElementById('idProduto').value || null,
+    nome: document.getElementById('nome').value,
+    descricao: document.getElementById('descricao').value,
+    preco: document.getElementById('preco').value,
+    estoque: document.getElementById('estoque').value,
+    marca: document.getElementById('marca').value,
+    categoria: document.getElementById('categoria').value,
+    imagem: document.getElementById('imagem').value
+  };
+
+  try {
+    const metodo = editandoId ? 'PUT' : 'POST';
+    const url = editandoId ? `/api/produtos/${editandoId}` : '/api/produtos';
+
+    const resposta = await fetch(url, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+
+    const texto = await resposta.text();
+
+    if (!resposta.ok) {
+      throw new Error(texto || 'Erro ao salvar produto.');
+    }
+
+    mostrarMensagem(editandoId ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
+    limparFormulario();
+    carregarProdutos();
+  } catch (erro) {
+    mostrarMensagem(erro.message, false);
+  }
+});
+
+btnCancelar.addEventListener('click', limparFormulario);
+carregarProdutos();
